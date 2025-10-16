@@ -1,21 +1,9 @@
-html,
 body {
-  height: 100%;
-  margin: 0;
+  font-family: "Courier New", Courier, monospace;
+  text-align: center;
 }
 
-/* Page background (optional) */
-body {
-  background-color: #a3d5ff;
-  background-image: url("flappybirdbg.png");
-  background-position: bottom center;
-  background-size: contain;
-  background-repeat: no-repeat;
-}
-
-/* Visualize the canvas edges while testing */
-canvas {
-  display: block;
-  margin: 0 auto;
-  border: 1px dashed #888;
+#board {
+  /* background-color: skyblue; */
+  background-image: url("./flappybirdbg.png");
 }
