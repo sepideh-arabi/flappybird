@@ -1,68 +1,129 @@
-//board
-let board;
-let boardWidth = 360;
-let boardHeight = 640;
-let context;
+// ===== Canvas =====
+let board, context;
+const boardWidth = 360;
+const boardHeight = 640;
 
-//bird
-let birdWidth = 34; //width/height ratio = 408/228 = 17/12
-let birdHeight = 24;
+// ===== Bird =====
+const birdWidth = 34; // ~17:12 aspect
+const birdHeight = 24;
 let birdX = boardWidth / 8;
 let birdY = boardHeight / 2;
 let birdImg;
 
-//pipes
-let pipeWidth = 64; //width/height ratio = 384/3072 = 1/8
-let pipeHeight = 512;
-let pipeX = boardWidth;
-let pipeY = 0;
+// ===== Physics =====
+let vy = 0; // vertical velocity (px/frame)
+const GRAV = 0.45; // gravity strength (tweakable)
+const JUMP = -7; // jump impulse (tweakable)
+const MAX_FALL = 12; // optional fall speed clamp
 
-let topPipeImg;
-let bottomPipeImg;
+// ===== Game State =====
+const STATE = { RUNNING: "RUNNING", GAME_OVER: "GAME_OVER" };
+let gameState = STATE.RUNNING;
+
+// (Pipes removed from rendering per homework)
+// const pipeWidth = 64;
+// const pipeHeight = 512;
+// let topPipeImg, bottomPipeImg;
 
 window.onload = function () {
   board = document.getElementById("board");
-  board.height = boardHeight;
   board.width = boardWidth;
-  context = board.getContext("2d"); //used for drawing on the board
+  board.height = boardHeight;
+  context = board.getContext("2d");
 
-  //draw flappy bird
-  context.fillStyle = "green";
-  context.fillRect(birdX, birdY, birdWidth, birdHeight);
+  // input: spacebar + click/tap + R to restart
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "Space") {
+      e.preventDefault(); // stop page scroll
+      if (gameState === STATE.RUNNING) flap();
+      else resetGame();
+    }
+    if (e.code === "KeyR") resetGame();
+  });
 
-  //load images
-  birdImg = new Image();
-  birdImg.src = "./flappybird.png";
-  birdImg.onload = function () {
-    context.drawImage(birdImg, birdX, birdY, birdWidth, birdHeight);
-  };
+  board.addEventListener("pointerdown", () => {
+    if (gameState === STATE.RUNNING) flap();
+    else resetGame();
+  });
 
-  topPipeImg = new Image();
-  topPipeImg.src = "./toppipe.png";
-  topPipeImg.onload = function () {
-    context.drawImage(topPipeImg, 0, 0, pipeWidth, pipeHeight);
-    context.drawImage(topPipeImg, 80, 0, pipeWidth, pipeHeight / 2);
-    context.drawImage(topPipeImg, 160, 0, pipeWidth, pipeHeight / 3);
-    context.drawImage(topPipeImg, 240, 0, pipeWidth, pipeHeight / 4);
-  };
-
-  bottomPipeImg = new Image();
-  bottomPipeImg.src = "./bottompipe.png";
-  bottomPipeImg.onload = function () {
-    context.drawImage(bottomPipeImg, 0, 565, pipeWidth, pipeHeight / 4);
-    context.drawImage(bottomPipeImg, 80, 425, pipeWidth, pipeHeight / 3);
-    context.drawImage(bottomPipeImg, 160, 320, pipeWidth, pipeHeight / 2);
-    context.drawImage(bottomPipeImg, 240, 215, pipeWidth, pipeHeight);
-  };
-
-  const orderFood = (restaurantName, foodAmount, foodName) => {
-    console.log(
-      "You are ordering " +
-        foodAmount +
-        " of " +
-        foodName +
-        " from " +
-        restaurantName
-    );
-  };
+  // load bird sprite then start loop (simple, no pipes)
+  preloadBird().finally(() => requestAnimationFrame(update));
 };
+
+// ---- preload helper (attach handlers before src) ----
+function preloadBird() {
+  return new Promise((res, rej) => {
+    birdImg = new Image();
+    birdImg.onload = res;
+    birdImg.onerror = () => rej(new Error("Failed to load flappybird.png"));
+    birdImg.src = "./flappybird.png";
+  });
+}
+
+// ---- actions ----
+function flap() {
+  vy = JUMP; // negative velocity = up
+}
+
+function gameOver() {
+  gameState = STATE.GAME_OVER;
+}
+
+function resetGame() {
+  birdY = boardHeight / 2;
+  vy = 0;
+  gameState = STATE.RUNNING;
+}
+
+// ---- main loop ----
+function update() {
+  context.clearRect(0, 0, boardWidth, boardHeight);
+
+  if (gameState === STATE.RUNNING) {
+    // gravity + position
+    vy += GRAV;
+    if (vy > MAX_FALL) vy = MAX_FALL;
+    birdY += vy;
+
+    // clamp to ceiling/floor -> GAME_OVER
+    if (birdY < 0) {
+      birdY = 0;
+      gameOver();
+    }
+    if (birdY > boardHeight - birdHeight) {
+      birdY = boardHeight - birdHeight;
+      gameOver();
+    }
+  }
+
+  // draw order (pipes intentionally hidden this week)
+  drawBird();
+
+  if (gameState === STATE.GAME_OVER) drawGameOverText();
+
+  requestAnimationFrame(update);
+}
+
+// ---- rendering ----
+function drawBird() {
+  if (birdImg && birdImg.complete) {
+    context.drawImage(birdImg, birdX, birdY, birdWidth, birdHeight);
+  } else {
+    // fallback rectangle if image missing
+    context.fillStyle = "green";
+    context.fillRect(birdX, birdY, birdWidth, birdHeight);
+  }
+}
+
+function drawGameOverText() {
+  context.fillStyle = "black";
+  context.font = "bold 24px sans-serif";
+  context.textAlign = "center";
+  context.fillText("GAME OVER", boardWidth / 2, boardHeight / 2 - 10);
+  context.font = "16px sans-serif";
+  context.fillText(
+    "Press SPACE / click / R to restart",
+    boardWidth / 2,
+    boardHeight / 2 + 20
+  );
+}
