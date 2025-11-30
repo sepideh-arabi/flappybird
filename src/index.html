@@ -2,26 +2,49 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <title>Flappy Bird</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Flappy Bird – Jump with Space</title>
-    <style>
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-      }
-      body {
-        display: grid;
-        place-items: center;
-        background: #a3d5ff;
-      }
-      canvas {
-        border: 1px dashed #888;
-      }
-    </style>
+    <link rel="stylesheet" href="./flappybird.css" />
   </head>
   <body>
-    <canvas id="board"></canvas>
+    <main class="game-wrapper">
+      <div class="game-container">
+        <!-- Game canvas -->
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+        <!-- Start screen -->
+        <section id="startScreen" class="overlay">
+          <h1>Flappy Bird</h1>
+          <p>
+            Press <strong>SPACE</strong> or <strong>CLICK/TAP</strong> to start
+          </p>
+        </section>
+
+        <!-- Game over screen -->
+        <section id="gameOverScreen" class="overlay overlay--hidden">
+          <h1>Game Over</h1>
+          <p id="finalScore"></p>
+          <p>
+            Press <strong>SPACE</strong> or <strong>CLICK/TAP</strong> to
+            restart
+          </p>
+        </section>
+      </div>
+
+      <!-- Small instructions / notes for the course -->
+      <section class="info">
+        <h2>Controls</h2>
+        <ul>
+          <li>SPACE / Arrow Up – flap</li>
+          <li>Mouse click or tap – flap</li>
+        </ul>
+        <p>
+          Features: start screen, game over screen, scoring, collision
+          detection, increasing difficulty, and sprite-based graphics.
+        </p>
+      </section>
+    </main>
+
     <script src="./flappybird.js" defer></script>
   </body>
 </html>
